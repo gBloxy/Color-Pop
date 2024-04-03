@@ -9,7 +9,9 @@ pygame.init()
 WIN_SIZE = (800, 600)
 
 win = pygame.display.set_mode(WIN_SIZE)
+pygame.display.set_caption('Color Pop')
 clock = pygame.time.Clock()
+
 
 class Shape():
     def __init__(self):
@@ -32,17 +34,20 @@ class Shape():
             self.points.append([int(x), int(y)])
         pygame.draw.polygon(surf, self.color, self.points)
 
-shapes = []
+
+font = pygame.font.SysFont('cooperblack', 52)
+font2 = pygame.font.SysFont('cooperblack', 100)
+
 speed = 15
 spawn_rate = 2000
 max_spawn_rate = 600
 timer = 0
-color = 'red'
 lifes = 3
-game_over = False
 score = 0
-font = pygame.font.SysFont('cooperblack', 52)
-font2 = pygame.font.SysFont('cooperblack', 100)
+game_over = False
+shapes = []
+color = 'red'
+
 
 while True:
     dt = clock.tick(60)
@@ -98,15 +103,15 @@ while True:
         win.blit(text, (WIN_SIZE[0]/2 - text.get_width()/2, 100))
         
         if keys[pygame.K_SPACE]:
-            shapes = []
             speed = 15
             spawn_rate = 2000
             max_spawn_rate = 600
             timer = 0
-            color = 'red'
             lifes = 3
-            game_over = False
             score = 0
+            game_over = False
+            shapes = []
+            color = 'red'
             continue
     
     for s in shapes:
