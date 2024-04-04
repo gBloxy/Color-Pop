@@ -11,28 +11,34 @@ WIN_SIZE = (800, 600)
 win = pygame.display.set_mode(WIN_SIZE)
 pygame.display.set_caption('Color Pop')
 clock = pygame.time.Clock()
+pygame.mouse.set_visible(False)
 
 
 class Shape():
     def __init__(self):
-        self.y = -20
+        self.y = -40
         self.x = randint(30, WIN_SIZE[0] - 30)
-        self.size = 20
+        self.size = 40
+        self.radius = self.size / 2
         self.color = choice(['red', 'yellow', 'blue'])
-        self.image = pygame.Surface((self.size, self.size), pygame.SRCALPHA)
         self.point_nb = randint(3, 8)
-        self.angle = (180 * (self.point_nb-2)) / self.point_nb
+        self.angle = 0
+        self.angle_rot = 0.008 * choice([-1, 1])
     
     def update(self):
         self.y += speed * dt / 100
+        self.angle += self.angle_rot
     
     def render(self, surf):
-        self.points = []
-        for i in range(self.point_nb):
-            x = self.x + self.size * cos(self.angle + pi * 2 * i / self.point_nb)
-            y = self.y + self.size * sin(self.angle + pi * 2 * i / self.point_nb)
-            self.points.append([int(x), int(y)])
-        pygame.draw.polygon(surf, self.color, self.points)
+        pygame.draw.polygon(surf, self.color,
+            [
+                (
+                    int(self.x + self.radius * cos(self.angle + pi * 2 * i / self.point_nb)),
+                    int(self.y + self.radius * sin(self.angle + pi * 2 * i / self.point_nb))
+                )
+                for i in range(self.point_nb)
+            ]
+        )
 
 
 font = pygame.font.SysFont('cooperblack', 52)
@@ -69,14 +75,14 @@ while True:
             color = 'yellow'
         elif keys[pygame.K_RIGHT]:
             color = 'blue'
-        
+            
         speed += 0.06 * dt/100
         if speed > 30:
             max_spawn_rate = 500
-        if speed > 50:
+        elif speed > 50:
             max_spawn_rate = 350
         if spawn_rate > max_spawn_rate:
-            spawn_rate -= 6 * dt/100
+            spawn_rate -= 5 * dt/100
         
         timer -= dt
         if timer <= 0:
@@ -85,7 +91,7 @@ while True:
         
         for s in shapes:
             s.update()
-            if s.y >= WIN_SIZE[1] - 20:
+            if s.y >= WIN_SIZE[1] - s.radius:
                 shapes.remove(s)
                 if s.color != color:
                     lifes -= 1
