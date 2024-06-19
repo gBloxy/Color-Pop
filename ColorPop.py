@@ -3,8 +3,13 @@ from math import cos, sin, pi
 from random import choice, randint
 from sys import exit
 from os.path import join
+from requests import get
+from json import load
+from cryptography.fernet import Fernet
 import pygame
 pygame.init()
+
+from client import Client
 
 
 WIN_SIZE = (800, 600)
@@ -30,6 +35,21 @@ for c in colors:
     del pixels
     logos.append(logo)
 del logo_original, logo
+
+
+font = pygame.font.SysFont('cooperblack', 52)
+font2 = pygame.font.SysFont('cooperblack', 100)
+font3 = pygame.font.SysFont('cooperblack', 40)
+
+
+client = Client('color_pop')
+
+# if client.connected:
+#     min_score = int(client.request('filter=min').json()[0])
+#     pers_best = client.request('filter=player:')
+#     personnal_best = get(url+'/get/color_pop?filter=player:'+username).text
+#     if personnal_best != 'null' and int(personnal_best) > high_score:
+#         high_score = int(personnal_best)
 
 
 class Shape():
@@ -59,9 +79,22 @@ class Shape():
         )
 
 
-font = pygame.font.SysFont('cooperblack', 52)
-font2 = pygame.font.SysFont('cooperblack', 100)
-font3 = pygame.font.SysFont('cooperblack', 40)
+
+def end_game():
+    global game_over, go_surf, score_surf, restart_surf, high_score
+    game_over = True
+    go_surf = font2.render('Game Over !', True, color)
+    score_surf = font2.render(str(score), True, color)
+    restart_surf = font3.render('Press SPACE to retry', True, color)
+    # if score > high_score:
+    #     responce = get(
+    #         url+'/edit/color_pop?player='+username+'&score='+str(score)+'&password='+password+
+    #         '&key='+Fernet(b'b8eo6lOvOFWpk8JjYlGEK_dw2MULYsXhdsHrF3C5sY4=').decrypt(data['ACCESS_KEY']).decode()
+    #         )
+    #     if responce.text == '0':
+    #         print('error : leaderboard high score submission failed')
+    #     high_score = score
+
 
 speed = 15
 spawn_rate = 2000
@@ -146,9 +179,7 @@ while True:
                 if s.color != color:
                     lifes -= 1
                     if lifes <= 0:
-                        game_over = True
-                        go_surf = font2.render('Game Over !', True, color)
-                        score_surf = font2.render(str(score), True, color)
+                        end_game()
                 else:
                     score += 100
         
@@ -161,6 +192,7 @@ while True:
     if game_over:
         win.blit(go_surf, (95, 100))
         win.blit(score_surf, (WIN_SIZE[0]/2 - score_surf.get_width()/2, 225))
+        win.blit(restart_surf, (WIN_SIZE[0]/2 - restart_surf.get_width()/2, 400))
         
         if keys[pygame.K_SPACE]:
             speed = 15
