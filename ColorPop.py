@@ -6,6 +6,8 @@ from os.path import join
 import pygame
 pygame.init()
 
+from client import Client
+
 
 WIN_SIZE = (800, 600)
 
@@ -30,6 +32,55 @@ for c in colors:
     del pixels
     logos.append(logo)
 del logo_original, logo
+
+
+font4 = pygame.font.SysFont('cooperblack', 52)
+font2 = pygame.font.SysFont('cooperblack', 100)
+font3 = pygame.font.SysFont('cooperblack', 40)
+
+font = pygame.freetype.SysFont('cooperblack', size=0)
+
+
+client = Client('color_pop')
+
+
+def blit_center(surface, source, center):
+    surface.blit(source, (center[0] - source.get_width() / 2, center[1] - source.get_height() / 2))
+
+
+class TextInput():
+    def __init__(self, pos, callback, placeholder):
+        self.font = pygame.freetype.SysFont('cooperblack', size=32)
+        self.center = pos
+        self.callback = callback
+        self.placeholder = placeholder
+        self.text = ''
+        self.focus = False
+    
+    def update(self, events):
+        if self.focus:
+            for e in events:
+                if e.type == pygame.KEYDOWN:
+                    if e.key == pygame.K_BACKSPACE:
+                        if self.text:
+                            self.text = self.text[:-1]
+                    elif e.key == pygame.K_RETURN:
+                        self.focus = False
+                        self.callback(self.text)
+                    else:
+                        self.text += e.unicode
+    
+    def render(self, surf):
+        if self.text:
+            text, trect = self.font.render(self.text, 'black' if self.focus else color)
+        else:
+            text, trect = self.font.render(self.placeholder, 'lightgray')
+        width = max(trect.width + 30, 220)
+        height = max(trect.height + 20, 60)
+        x = self.center[0] - width / 2
+        y = self.center[1] - height / 2
+        pygame.draw.rect(surf, 'lightgray' if self.focus else 'darkgray', (x, y, width, height), border_radius=25)
+        blit_center(surf, text, self.center)
 
 
 class Shape():
@@ -59,9 +110,46 @@ class Shape():
         )
 
 
-font = pygame.font.SysFont('cooperblack', 52)
-font2 = pygame.font.SysFont('cooperblack', 100)
-font3 = pygame.font.SysFont('cooperblack', 40)
+
+def set_username(username):
+    global message, message_timer
+    if client.registred:
+        res = client.setUsername(username)
+    else:
+        res = client.register(username)
+    if 'error' in res:
+        message = res['error']
+        message_timer = 10000
+
+
+def score_thread(score):
+    high_score = client.getMinScore()
+    if score > high_score:
+        responce = client.sendScore(score)
+        if responce:
+            print(responce)
+    else:
+        print('score too low')
+    print('thread ended')
+
+
+def end_game():
+    global game_over, go_surf, score_surf, restart_surf
+    game_over = True
+    go_surf = font2.render('Game Over !', True, color)
+    score_surf = font2.render(str(score), True, color)
+    restart_surf = font3.render('Press SPACE to retry', True, color)
+    if client.registred:
+        client.thread(score_thread, args=(score,))
+
+
+text_input = TextInput((WIN_SIZE[0] / 2, 220), set_username, 'name')
+
+if client.registred:
+    text_input.text = client.username
+
+message = ''
+message_timer = 0
 
 speed = 15
 spawn_rate = 2000
@@ -75,16 +163,18 @@ color = colors[0]
 
 
 while True:
+    dt = clock.tick(60)
     keys = pygame.key.get_pressed()
     if keys[pygame.K_ESCAPE]:
         pygame.quit()
         exit()
-    for e in pygame.event.get():
+    events = pygame.event.get()
+    for e in events:
         if e.type == pygame.QUIT:
             pygame.quit()
             exit()
     
-    if keys[pygame.K_SPACE]:
+    if keys[pygame.K_SPACE] and not text_input.focus:
         break
     
     for i, c in enumerate(controls):
@@ -94,16 +184,32 @@ while True:
     
     win.fill('black')
     
-    win.blit(font2.render('Color Pop', True, color), (150, 40))
-    win.blit(font3.render('Press SPACE to start', True, color), (190, 205))
-    win.blit(font3.render('Controls :', True, color), (300, 290))
-    win.blit(font3.render('Red : LEFT', True, color), (295, 350))
-    win.blit(font3.render('Yellow : UP', True, color), (286, 395))
-    win.blit(font3.render('Blue : RIGHT', True, color), (274, 440))
+    center = WIN_SIZE[0] / 2
+    size = 30
+    
+    blit_center(win, font.render('Color Pop',            color, size=100 )[0], (center,  80))
+    blit_center(win, font.render('Press SPACE to start', color, size=35  )[0], (center, 355))
+    blit_center(win, font.render('Controls :',           color, size=size)[0], (center, 415))
+    blit_center(win, font.render('Red : LEFT',           color, size=size)[0], (center, 460))
+    blit_center(win, font.render('Yellow : UP',          color, size=size)[0], (center, 490))
+    blit_center(win, font.render('Blue : RIGHT',         color, size=size)[0], (center, 520))
     
     win.blit(logos[colors.index(color)], (25, 510))
+    win.blit(font.render('Press ESCAPE to quit', color, size=20)[0], (550, 530))
     
-    clock.tick(60)
+    if keys[pygame.K_g] and not text_input.focus:
+        text_input.focus = True
+    
+    if message_timer > 0:
+        message_timer -= dt
+        if message_timer <= 0:
+            message = ''
+        else:
+            blit_center(win, font.render(message, 'white', size=20)[0], (center, 285))
+    
+    text_input.update(events)
+    text_input.render(win)
+    
     pygame.display.flip()
 
 
@@ -146,13 +252,11 @@ while True:
                 if s.color != color:
                     lifes -= 1
                     if lifes <= 0:
-                        game_over = True
-                        go_surf = font2.render('Game Over !', True, color)
-                        score_surf = font2.render(str(score), True, color)
+                        end_game()
                 else:
                     score += 100
         
-        text = font.render(str(score), True, color)
+        text = font4.render(str(score), True, color)
         win.blit(text, (WIN_SIZE[0] - 50 - text.get_width(), 15))
     
     for s in shapes:
@@ -161,6 +265,7 @@ while True:
     if game_over:
         win.blit(go_surf, (95, 100))
         win.blit(score_surf, (WIN_SIZE[0]/2 - score_surf.get_width()/2, 225))
+        win.blit(restart_surf, (WIN_SIZE[0]/2 - restart_surf.get_width()/2, 400))
         
         if keys[pygame.K_SPACE]:
             speed = 15
