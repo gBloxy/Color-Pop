@@ -10,15 +10,16 @@ from client import Client
 
 
 WIN_SIZE = (800, 600)
+SCREENSHOT = False
 
 win = pygame.display.set_mode(WIN_SIZE)
 pygame.display.set_caption('Color Pop')
 clock = pygame.time.Clock()
-pygame.mouse.set_visible(False)
 
 
 colors = ['red', 'yellow', 'blue'] # 'lime'
 controls = [pygame.K_LEFT, pygame.K_UP, pygame.K_RIGHT]
+color = colors[0]
 
 
 logo_original = pygame.image.load(join('asset', 'logo.png'))
@@ -56,30 +57,48 @@ class TextInput():
         self.placeholder = placeholder
         self.text = ''
         self.focus = False
+        self.hovered = False
+        self.resize()
+    
+    def exit(self):
+        self.focus = False
+        self.callback(self.text)
+    
+    def resize(self):
+        if self.text:
+            surf, text_rect = self.font.render(self.text, 'black' if self.focus else color)
+        else:
+            text, text_rect = self.font.render(self.placeholder, 'lightgray')
+        width = max(text_rect.width + 30, 220)
+        height = max(text_rect.height + 20, 60)
+        x = self.center[0] - width / 2
+        y = self.center[1] - height / 2
+        self.rect = pygame.Rect(x, y, width, height)
     
     def update(self, events):
+        if self.rect.collidepoint(pygame.mouse.get_pos()):
+            self.hovered = True
+        else:
+            self.hovered = False
         if self.focus:
             for e in events:
                 if e.type == pygame.KEYDOWN:
                     if e.key == pygame.K_BACKSPACE:
                         if self.text:
                             self.text = self.text[:-1]
+                            self.resize()
                     elif e.key == pygame.K_RETURN:
-                        self.focus = False
-                        self.callback(self.text)
+                        self.exit()
                     else:
                         self.text += e.unicode
+                        self.resize()
     
     def render(self, surf):
         if self.text:
             text, trect = self.font.render(self.text, 'black' if self.focus else color)
         else:
             text, trect = self.font.render(self.placeholder, 'lightgray')
-        width = max(trect.width + 30, 220)
-        height = max(trect.height + 20, 60)
-        x = self.center[0] - width / 2
-        y = self.center[1] - height / 2
-        pygame.draw.rect(surf, 'lightgray' if self.focus else 'darkgray', (x, y, width, height), border_radius=25)
+        pygame.draw.rect(surf, 'lightgray' if self.focus else ('darkgray' if not self.hovered else 'gray'), self.rect, border_radius=25)
         blit_center(surf, text, self.center)
 
 
@@ -110,7 +129,6 @@ class Shape():
         )
 
 
-
 def set_username(username):
     global message, message_timer
     if client.registred:
@@ -139,7 +157,7 @@ def end_game():
     go_surf = font2.render('Game Over !', True, color)
     score_surf = font2.render(str(score), True, color)
     restart_surf = font3.render('Press SPACE to retry', True, color)
-    if client.registred:
+    if client.connected and client.registred:
         client.thread(score_thread, args=(score,))
 
 
@@ -147,6 +165,7 @@ text_input = TextInput((WIN_SIZE[0] / 2, 220), set_username, 'name')
 
 if client.registred:
     text_input.text = client.username
+    text_input.resize()
 
 message = ''
 message_timer = 0
@@ -159,7 +178,6 @@ lifes = 3
 score = 0
 game_over = False
 shapes = []
-color = colors[0]
 
 
 while True:
@@ -173,6 +191,13 @@ while True:
         if e.type == pygame.QUIT:
             pygame.quit()
             exit()
+        elif e.type == pygame.MOUSEBUTTONDOWN:
+            if e.button == 1:
+                if text_input.hovered:
+                    if not text_input.focus:
+                        text_input.focus = True
+                elif text_input.focus:
+                    text_input.exit()
     
     if keys[pygame.K_SPACE] and not text_input.focus:
         break
@@ -197,9 +222,6 @@ while True:
     win.blit(logos[colors.index(color)], (25, 510))
     win.blit(font.render('Press ESCAPE to quit', color, size=20)[0], (550, 530))
     
-    if keys[pygame.K_g] and not text_input.focus:
-        text_input.focus = True
-    
     if message_timer > 0:
         message_timer -= dt
         if message_timer <= 0:
@@ -210,7 +232,14 @@ while True:
     text_input.update(events)
     text_input.render(win)
     
+    if keys[pygame.K_s] and SCREENSHOT:
+        pygame.image.save(win, 'image'+str(clock.get_time())+'.png')
+        pygame.time.wait(300)
+    
     pygame.display.flip()
+
+
+pygame.mouse.set_visible(False)
 
 
 while True:
@@ -283,5 +312,9 @@ while True:
     
     for i in range(lifes):
         pygame.draw.circle(win, color, (50 + 35 * i, 50), 15)
+    
+    if keys[pygame.K_s] and SCREENSHOT:
+        pygame.image.save(win, 'image'+str(clock.get_time())+'.png')
+        pygame.time.wait(300)
     
     pygame.display.flip()

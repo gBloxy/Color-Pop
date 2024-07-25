@@ -92,7 +92,10 @@ class Client():
     
     def setUsername(self, username):
         print('changing username')
-        return self.register(username, registred=True)
+        if username != self.username:
+            return self.register(username, registred=True)
+        print('same username')
+        return {}
     
     def getMinScore(self):
         print('getting high score')
