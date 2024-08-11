@@ -4,6 +4,7 @@ from random import choice, randint
 from sys import exit
 from os.path import join
 import pygame
+import pygame.freetype
 pygame.init()
 
 from client import Client
@@ -143,12 +144,9 @@ def set_username(username):
 def score_thread(score):
     high_score = client.getMinScore()
     if score > high_score:
-        responce = client.sendScore(score)
-        if responce:
-            print(responce)
-    else:
-        print('score too low')
-    print('thread ended')
+        response = client.sendScore(score)
+        if response:
+            print(response)
 
 
 def end_game():
@@ -161,14 +159,20 @@ def end_game():
         client.thread(score_thread, args=(score,))
 
 
+message = ''
+message_timer = 0
+
+if not client.connected:
+    message = 'Connection to server failed'
+    message_timer = 10000
+
+
 text_input = TextInput((WIN_SIZE[0] / 2, 220), set_username, 'name')
 
 if client.registred:
     text_input.text = client.username
     text_input.resize()
 
-message = ''
-message_timer = 0
 
 speed = 15
 spawn_rate = 2000
