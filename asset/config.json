@@ -1,6 +1,0 @@
-{
-    "URL": "https://gBloxy.pythonanywhere.com/leaderboard",
-    "URL_ROOT": "https://gBloxy.pythonanywhere.com",
-    "ACCESS_KEY": "gAAAAABmbcgubScRjwVB4i7ocNOxSPI8s1gBMr5zhNZUbALrwFHhvL6RIepUnfa9ButzFviD5txf_VXUNIz0n9Z_fZFXAoo9Hqa5rNJiljU6xoszEtmawQquWvAZclE3JYrb6Kj_UaSh",
-    "REGEX": "^[a-zA-Z0-9_.-]+$"
-}
