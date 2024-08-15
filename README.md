@@ -1,19 +1,19 @@
 # Color Pop
 
-Color Pop is a little game where you need to select the same color as a falling shape before it reach the bottom of the screen. When a shape reach the end and the selected color mismatch, you lose a life. The shapes go and spawns faster faster and faster.  
-The game was made in about 1 hour with python and pygame.
+Color Pop is a little game where you need to select the same color as a falling shape before it reaches the bottom of the screen. When a shape reaches the end and the selected color doesn't match​, you lose a life. The shapes spawn and move faster and faster.  
+The game features a global online leaderboard for high scores.  While needing no account or sign-up, it lets anyone submit their score.
 
 ## Screenshots
 
-![1](https://github.com/gBloxy/Color-Pop/assets/121670440/a7b63e8a-a607-45d1-97dc-4db9dedf53e2)
-![2](https://github.com/gBloxy/Color-Pop/assets/121670440/06850969-20c0-4525-a2a5-e290b6f1ef5a)
+![img1](https://github.com/user-attachments/assets/81039ae3-043f-4ec3-9bf5-f8e0cf3db9a1)
+![img2](https://github.com/user-attachments/assets/4d19cf24-7ab9-4c37-b509-dbb2e055ac85)
 
 ## Controls
 
 + select red color : RIGHT
 + select blue color : LEFT
 + select yellow color : UP
-+ retry : SPACE
++ play / retry : SPACE
 
 ## Play the game
 
@@ -22,9 +22,9 @@ Unzip the game folder and then execute the `ColorPop.py` python file.
 ## Requirements
 
 * Make sure you have python installed.  
-* Use the package manager [pip](https://pip.pypa.io/en/stable/) to install [pygame](https://www.pygame.org/news).  
+* Use the package manager [pip](https://pip.pypa.io/en/stable/) to install the requirements :  
 ```bash
-pip install pygame
+pip install -r requirements.txt
 ```
 
 ## Contributing
