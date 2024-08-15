@@ -1,7 +1,9 @@
 # Color Pop
 
 Color Pop is a little game where you need to select the same color as a falling shape before it reaches the bottom of the screen. When a shape reaches the end and the selected color doesn't match​, you lose a life. The shapes spawn and move faster and faster.  
-The game features a global online leaderboard for high scores.  While needing no account or sign-up, it lets anyone submit their score.
+The game features a global [online leaderboard](https://gbloxy.pythonanywhere.com/leaderboard/view/color_pop) for high scores. While needing no account or sign-up, it lets anyone submit their score.
+
+The game is released on itch.io [here](https://g-bloxy.itch.io/color-pop).
 
 ## Screenshots
 
